@@ -1,0 +1,18 @@
+<h1>アンケート一覧画面</h1>
+
+<table border="1">
+  <tr>
+    <th>アンケートID</th>
+    <th>アンケート名</th>
+  </tr>
+  {% for data in enquete_data %}
+  <tr>
+    <td>
+      {{ data.enquete_id }}
+    </td>
+    <td>
+      {{ data.enquete_name }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
