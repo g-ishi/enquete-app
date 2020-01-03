@@ -1,0 +1,86 @@
+{% extends 'base/base.html' %}
+
+{% block title %}
+<title>
+  {{ page_title }}
+</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'enquete:list' %}">アンケート一覧</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'enquete:detail' enquete_obj.enquete_id %}">アンケート詳細</a></li>
+    <li class="breadcrumb-item active">アンケート集計</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block main %}
+<div id="id_graph_field"></div>
+
+{{ graphs_data|json_script:"graphs_data" }}
+
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+<script>
+  
+  var GRAPH_NUMBER = 1
+  function create_pie_graphs(graph_data) {
+    // グラフを描画する領域を作成する
+    var canvas_id = 'canvas' + GRAPH_NUMBER
+    var canvas_tag = '<canvas id="' + canvas_id + '"></canvas>'
+    $('#id_graph_field').append(canvas_tag)
+    GRAPH_NUMBER = GRAPH_NUMBER + 1
+
+    var ctx = document.getElementById(canvas_id);
+    var myPieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: graph_data['labels'],
+        datasets: [{
+          backgroundColor: graph_data['backgroundColor'],
+          data: graph_data['data']
+        }]
+      },
+      options: {
+        title: {
+          display: true,
+          text: graph_data['question_text']
+        }
+      }
+    });
+  }
+
+  // 画面読み込み時にグラフの描画を行う
+  $(document).ready(function () {
+    // Viewsから渡された変数を再構築
+    // 変数宣言の中に入れないとテンプレートタグが機能しない
+    // 他にもjsonで受け渡しをする方法とかもある。そっちの方が綺麗かもしれない。
+    var graphs_data = [
+    {% for graph_data in graphs_data %}
+    {
+      "question_text": "{{ graph_data.question_text|safe }}",
+      "labels": {{ graph_data.labels | safe }},
+      "data": {{ graph_data.data | safe }},
+      "backgroundColor": {{ graph_data.backgroundColor | safe }},
+    },
+    {% endfor %}
+    ]
+
+    for(var i = 0; i < graphs_data.length; i++){
+      console.log(i)
+      console.log(graphs_data[i])
+      create_pie_graphs(graphs_data[i])
+    }
+  })
+
+</script>
+
+{% endblock %}

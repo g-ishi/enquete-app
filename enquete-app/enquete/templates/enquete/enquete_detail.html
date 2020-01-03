@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+
+{% block title %}
+<title>
+  {{ page_title }}
+</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'enquete:list' %}">アンケート一覧</a></li>
+    <li class="breadcrumb-item active">アンケート詳細</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block main %}
+<div class="button-field">
+  <a href="{% url 'enquete:answer' enquete_id %}">
+    <button type="button" class="btn btn-primary">回答する</button>
+  </a>
+  <a href="{% url 'enquete:totalize' enquete_id %}">
+    <button type="button" class="btn btn-primary">集計結果</button>
+  </a>
+</div>
+
+<table class="table">
+  <thead class="thead-light">
+    <tr>
+      {% for header in headers %}
+      <th scope="col">
+        {{ header }}
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for enquete_detail in enquete_details %}
+    <tr>
+      <td>
+        <a href="{% url 'enquete:answer_update' enquete_id enquete_detail.member_obj.id %}">
+          {{ enquete_detail.member_obj.member_name }}
+        </a>
+      </td>
+      {% for answer in enquete_detail.answers %}
+      <td>
+        {{ answer }}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}

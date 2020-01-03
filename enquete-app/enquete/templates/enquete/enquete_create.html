@@ -1,0 +1,210 @@
+{% extends 'base/base.html' %}
+
+{% block title %}
+<title>
+  {{ page_title }}
+</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'enquete:list' %}">アンケート一覧</a></li>
+    <li class="breadcrumb-item active">アンケート作成</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block hidden %}
+<!-- 質問追加用のhidden -->
+<div class="card" id="question-hidden" hidden>
+  <div class="card-header" id="heading-">
+    <h2 class="mb-0">
+      <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#base-question-"
+        aria-expanded="false" aria-controls="base-question-">
+        質問項目　＃
+      </button>
+    </h2>
+  </div>
+  <div id="base-question-" class="collapse show hidden-body" aria-labelledby="heading-"
+    data-parent="#question-accordion">
+    <div class="card-body">
+      {{ forms.question_text.label_tag }}
+      {{ forms.question_text }}
+      {{ forms.question_text.errors }}
+
+      {{ forms.question_type.label_tag }}
+      {{ forms.question_type }}
+      {{ forms.question_type.errors }}
+
+      <div id="choice-field">
+        {{ forms.choice_name.label_tag }}
+        <div class="form-inline add-field">
+          {{ forms.choice_name }}
+          {{ forms.choice_name.errors }}
+          <button type="button" class="btn btn-info add">+</button>
+          <button type="button" class="btn btn-info del">-</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+<!-- djangoのformにbootstrapを設定 -->
+<!-- http://strkita.hatenablog.com/entry/2017/08/17/232712 -->
+{% block main %}
+{% if is_success %}
+<div class="alert alert-success" role="alert">
+  アンケートの作成に成功しました。
+  続けて新しいアンケートを作成できます。
+</div>
+{% endif %}
+
+<form action="{% url 'enquete:create' %}" method="POST">
+  {% csrf_token %}
+  <!-- 最新の質問番号を保持 -->
+  <input type="hidden" name="total_question_num" value="1" id="id_total_question_num">
+  <!-- アンケート名 -->
+  <div class="form-group">
+    {{ forms.enquete_name.label_tag }}
+    {{ forms.enquete_name }}
+    {{ forms.enquete_name.errors }}
+  </div>
+  <!-- 質問項目 -->
+  <div class="accordion" id="question-accordion">
+    <div class="card">
+      <div class="card-header" id="heading-1">
+        <h2 class="mb-0">
+          <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#question-1"
+            aria-expanded="true" aria-controls="question-1">
+            質問項目　＃1
+          </button>
+        </h2>
+      </div>
+      <div id="question-1" class="collapse show" aria-labelledby="heading-1" data-parent="#question-accordion">
+        <div class="card-body">
+          {{ forms.question_text.label_tag }}
+          {{ forms.question_text }}
+          {{ forms.question_text.errors }}
+
+          {{ forms.question_type.label_tag }}
+          {{ forms.question_type }}
+          {{ forms.question_type.errors }}
+
+          <div id="choice-field">
+            {{ forms.choice_name.label_tag }}
+            <div class="form-inline add-field">
+              {{ forms.choice_name }}
+              {{ forms.choice_name.errors }}
+              <button type="button" class="btn btn-info add">+</button>
+              <button type="button" class="btn btn-info del">-</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="button-field">
+    <button type="button" class="btn btn-info" id="id_add_question">質問の追加</button>
+    <button type="submit" class="btn btn-primary" id="id_create_enquete">アンケート作成</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block script %}
+<script>
+
+  // id, nameにQ_numを追加
+  $(document).ready(function () {
+    $('form #id_question_text').attr('name', 'question_text1')
+    $('form #id_question_text').attr('id', 'id_question_text1')
+    $('form #id_question_type').attr('name', 'question_type1')
+    $('form #id_question_type').attr('id', 'id_question_type1')
+    $('form #id_choice_name').attr('name', 'choice_name1')
+    $('form #id_choice_name').attr('id', 'id_choice_name1')
+
+    // add-fieldの中身を押せないようにする
+    $('.add-field').each(function (i, element) {
+      $(element).children('input').prop('disabled', true);
+      $(element).children('button').prop('disabled', true);
+    })
+  })
+
+  // セレクトボックスとラジオボタンを選択した時のみ、選択肢を入力できるようにする
+  $('select').change(function () {
+    var value = $(this).val()
+
+    console.log(value)
+    if (value == 'select' || value == 'radio') {
+      console.dir($(this).next().find('.add-field').children('input'))
+      $(this).next().find('.add-field').children('input').prop('disabled', false)
+      $(this).next().find('.add-field').children('button').prop('disabled', false)
+    }
+    else {
+      $(this).next().find('.add-field').children('input').prop('disabled', true)
+      $(this).next().find('.add-field').children('button').prop('disabled', true)
+    }
+  })
+
+  $('#id_add_question').on('click', function () {
+
+    // hiddenの質問項目を複製
+    let new_question = $('#question-hidden').clone(true)
+    new_question.removeAttr('hidden')
+    new_question.removeAttr('id')
+
+    // 新しいIDを設定
+    Q_num = $('#id_total_question_num').val()
+    Q_num = parseInt(Q_num, 10) + 1
+    $('#id_total_question_num').val(Q_num)
+
+    let new_id = 'base-question-' + Q_num;
+
+    // アコーディオンを動作させるための設定
+    new_question.find('.card-header').attr('id', 'heading-' + Q_num);
+    new_question.find('.mb-0 button').attr('data-target', '#' + new_id)
+    new_question.find('.mb-0 button').attr('aria-controls', new_id)
+    new_question.find('.mb-0 button').html('質問項目　#' + Q_num)
+    new_question.find('.hidden-body').attr('id', new_id);
+    new_question.find('.hidden-body').attr('aria-labelledby', 'heading-' + Q_num);
+
+    // formのidを更新する
+    new_question.find('#id_question_text').attr('name', 'question_text' + Q_num)
+    new_question.find('#id_question_text').attr('id', 'id_question_text' + Q_num)
+    new_question.find('#id_question_type').attr('name', 'question_type' + Q_num)
+    new_question.find('#id_question_type').attr('id', 'id_question_type' + Q_num)
+    new_question.find('#id_choice_name').attr('name', 'choice_name' + Q_num)
+    new_question.find('#id_choice_name').attr('id', 'id_choice_name' + Q_num)
+
+    new_question.appendTo('#question-accordion')
+  })
+
+  // 選択肢の入力項目を表示させる  
+  $('#id_question_type').change(function () {
+    if ($(this).val() !== 'text') {
+      $(this).parent().parent().find('#id_choice_name').removeClass("hide")
+    }
+    else {
+      $(this).parent().parent().find('#id_choice_name').addClass("hide")
+    }
+  })
+
+  // 選択肢の追加
+  $('.add').on("click", function () {
+    $(this).parent().clone(true).insertAfter($(this).parent());
+  });
+  $('.del').on("click", function () {
+    var target = $(this).parent();
+    if (target.parent().children().length > 2) {
+      target.remove();
+    }
+  });
+
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base/base.html' %}
+
+{% block title %}
+<title>
+  {{ page_title }}
+</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'enquete:list' %}">アンケート一覧</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'enquete:detail' enquete_obj.enquete_id %}">アンケート詳細</a></li>
+    <li class="breadcrumb-item active">アンケート作成</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block main %}
+{% if is_success %}
+<div class="alert alert-success" role="alert">
+  アンケートに回答しました。
+  ご回答ありがとうございました。
+</div>
+{% endif %}
+
+<h2>
+  {{ enquete_obj.enquete_name }}
+</h2>
+
+<form action="{% url 'enquete:answer' enquete_obj.enquete_id %}" method="POST">
+  {% csrf_token %}
+  <label class="question-text">
+    回答者：
+  </label>
+  {{ member_form.member_name }}
+  {% for question in questions %}
+  <label class="question-text">
+    {{ question.question_text }}
+  </label>
+  {{ question.question_form }}
+  {% endfor %}
+  <div class="button-field">
+    <button type="submit" class="btn btn-primary" id="id_answer">回答する</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block script %}
+<script>
+  // radioボタンのulタグのclassをform-checkに変更する
+  $('ul').removeClass('form-check-input');
+  $('ul').addClass('form-check');
+  
+  // label属性を全部取得して、必要ないラベルを削除する
+  $('label').each(function (i, element) {
+    if ($(element).text().match('Answer')) {
+      $(element).remove();
+    }
+  })
+</script>
+{% endblock %}

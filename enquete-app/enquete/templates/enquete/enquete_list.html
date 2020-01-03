@@ -1,18 +1,38 @@
-<h1>アンケート一覧画面</h1>
+{% extends 'base/base.html' %}
 
-<table border="1">
-  <tr>
-    <th>アンケートID</th>
-    <th>アンケート名</th>
-  </tr>
-  {% for data in enquete_data %}
-  <tr>
-    <td>
-      {{ data.enquete_id }}
-    </td>
-    <td>
-      {{ data.enquete_name }}
-    </td>
-  </tr>
-  {% endfor %}
+{% block title %}
+<title>アンケート一覧画面</title>
+{% endblock %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block main %}
+{% include 'base/pagenate.html' %}
+<table class="table">
+  <thead class="thead-light">
+    <tr>
+      {% for header in headers %}
+      <th scope="col">
+        {{ header }}
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in data %}
+    <tr>
+      <td>
+        <a href="{% url 'enquete:detail' d.enquete_id %}">
+          {{ d.enquete_id }}
+        </a>
+      </td>
+      <td>
+        {{ d.enquete_name }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
+{% endblock %}
