@@ -1,2 +1,3 @@
 #gitにコミットしないファイルを定義する
 *.pyc
+enquete-app/enquete/__pycache__/
